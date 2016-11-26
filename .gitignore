@@ -4,3 +4,5 @@ Belatrix.Logger.Test/bin/Debug/Belatrix.Logger.Test.dll.config
 Belatrix.Logger.Test/bin/Debug/Belatrix.Logger.Test.pdb
 Belatrix.Logger.Test/bin/Debug/belatrixLogger.txt
 Belatrix.Logger.Test/bin/Debug/BelatrixTest.Logger.dll
+.vs/BelatrixTest/v14/.suo
+*.suo
