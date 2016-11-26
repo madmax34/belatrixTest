@@ -1,0 +1,124 @@
+﻿
+    // This is the original file, I'll be commenting on the errors that I find here and correct them and refactor in another file
+    
+
+    //The first thing I've noticed is that there is no Namespace surounding this file
+    using System;
+    using System.IO;
+
+    //This using statements are not needed, they can be safely removed
+    using System.Linq;
+    using System.Text;
+    public class JobLogger
+    {
+        //There is no need for static fields, since they are initiallized in the constructor
+        private static bool _logToFile;
+        private static bool _logToConsole;
+        private static bool _logMessage;
+        private static bool _logWarning;
+        private static bool _logError;
+        private static bool LogToDatabase; //The correct name for this field should be "_logToDatabase"
+        private bool _initialized; //This field is not used 
+        public JobLogger(bool logToFile, bool logToConsole, bool logToDatabase, bool logMessage, bool logWarning, bool logError)
+        {
+            _logError = logError;
+            _logMessage = logMessage;
+            _logWarning = logWarning;
+            LogToDatabase = logToDatabase;
+            _logToFile = logToFile;
+            _logToConsole = logToConsole;
+        }
+
+        //There is no need for this method to be static if the intention is to use an instance of the logger
+        //The parameter message is declared two times, both as a string and as a bool, this will result in a compiler error
+        //The discriminator of the message should be an enum instead of three booleans
+        public static void LogMessage(string message, bool message, bool warning, bool error)
+        {
+            //If message is null, this will result in an exception of type NullReferenceException. The Trim should be done once it is verified that there is a value (different to null)
+            message.Trim();
+            if (message == null || message.Length == 0)
+            {
+                return;
+            }
+            if (!_logToConsole && !_logToFile && !LogToDatabase)
+            {
+                throw new Exception("Invalid configuration");
+            }
+
+            //There is no need for the first term of the OR???
+            if ((!_logError && !_logMessage && !_logWarning) || (!message && !warning
+            && !error))
+            {
+                throw new Exception("Error or Warning or Message must be specified");
+            }
+
+            //This code should only be executed if the logger was configured to log to database
+            //It would be better to instantiate the connection inside a using, so the connection would be inmediately closed and disposed after the las sentence of the using statement
+            System.Data.SqlClient.SqlConnection connection = new System.Data.SqlClient.SqlConnection(System.Configuration.ConfigurationManager.AppSettings["ConnectionString"]);
+            connection.Open();
+
+            //To clarify this variable could be a string, maybe it would be better to use an Enum
+            int t;
+            if (message && _logMessage)
+            {
+                t = 1;
+            }
+            if (error && _logError)
+            {
+                t = 2;
+            }
+            if (warning && _logWarning)
+            {
+                t = 3;
+            }
+            //There is no need to convert t to string
+            System.Data.SqlClient.SqlCommand command = new System.Data.SqlClient.SqlCommand("Insert into Log Values('" + message + "', " + t.ToString() + ")");
+            command.ExecuteNonQuery();
+            
+            //This code should only be executed if the logger was configured to log to file
+            //l variable should have a more significative name
+            string l;
+
+            //This condition should not be negated, since it would be true only if the file doesn't exists and it will try to open an unexistent file
+            //In order to create a valid path we should use Path.Combine. The configuration value for the key "LogFileDirectory" should be checked to contain "\" at the end of it, in order to avoid a path not found error or file not found
+            //If the file does not exists, it should be created to avoid an error while trying to write into it
+            if (!System.IO.File.Exists(System.Configuration.ConfigurationManager.AppSettings["LogFileDirectory"] + "LogFile" + DateTime.Now.ToShortDateString() + ".txt"))
+            {
+                l = System.IO.File.ReadAllText(System.Configuration.ConfigurationManager.AppSettings["LogFileDirectory"] + "LogFile" + DateTime.Now.ToShortDateString() + ".txt");
+            }
+
+            //There is no point in writting so many ifs since they all do the same thing
+            //This will only create unreadable information on the file since there is no separation of any kind between the date and the message
+            if (error && _logError)
+            {
+                l = l + DateTime.Now.ToShortDateString() + message;
+            }
+            if (warning && _logWarning)
+            {
+                l = l + DateTime.Now.ToShortDateString() + message;
+            }
+            if (message && _logMessage)
+            {
+                l = l + DateTime.Now.ToShortDateString() + message;
+            }
+
+            //The file should be appended with the new log information, doing this there would be no need to read all the file
+            System.IO.File.WriteAllText(System.Configuration.ConfigurationManager.AppSettings[
+            "LogFileDirectory"] + "LogFile" + DateTime.Now.ToShortDateString() + ".txt", l);
+
+            //This code should only be executed if the logger was configured to log to console
+            if (error && _logError)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+            }
+            if (warning && _logWarning)
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+            }
+            if (message && _logMessage)
+            {
+                Console.ForegroundColor = ConsoleColor.White;
+            }
+            Console.WriteLine(DateTime.Now.ToShortDateString() + message);
+        }
+    }
