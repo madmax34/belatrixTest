@@ -7,7 +7,6 @@ namespace BelatrixTest.Logger
     {
         public void Write(string format, params object[] args)
         {
-            var consoleColor = Console.ForegroundColor = ConsoleColor.Black;
             Console.Write(format, args);
         }
 

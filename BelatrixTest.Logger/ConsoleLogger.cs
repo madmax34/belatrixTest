@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using BelatrixTest.Logger.Helpers;
 using BelatrixTest.Logger.Interfaces;
 using BelatrixTest.Logger.Messages;
 
@@ -31,7 +32,7 @@ namespace BelatrixTest.Logger
 
             _consoleWriter.SetForegroundColor(color);
 
-            var logMessage = $"{message.Id}|{message.Date.ToString(CultureInfo.InvariantCulture)}|{message.LogLevel}|{message.LogMessage}";
+            var logMessage = MessageHelper.GetFormattedMessage(message);
             _consoleWriter.WriteLine(logMessage);
         }
     }

@@ -5,6 +5,7 @@ namespace BelatrixTest.Logger
 {
     public class DatabaseLogger : ILogger
     {
+        private const string InsertTemplate = "Insert into Logger (Id, LogDate, LogLevel, LogMessage) VALUES ('{0}', '{1}', '{2}', '{3}')";
         private readonly string _connectionString;
 
         public DatabaseLogger()
@@ -22,7 +23,8 @@ namespace BelatrixTest.Logger
             var connection = new SQLiteConnection(_connectionString);
             connection.Open();
 
-            var command = new SQLiteCommand("Insert into Logger (Id, LogDate, LogLevel, LogMessage) VALUES ('" + message.Id + "', '" + message.Date + "', '" + message.LogLevel + "', '" + message.LogMessage + "')", connection);
+            var commandText = string.Format(InsertTemplate, message.Id, message.Date, message.LogLevel, message.LogMessage);
+            var command = new SQLiteCommand(commandText, connection);
             command.ExecuteNonQuery();
 
             connection.Close();

@@ -49,6 +49,7 @@
   <ItemGroup>
     <Compile Include="ConsoleLogger.cs" />
     <Compile Include="ConsoleWriter.cs" />
+    <Compile Include="Helpers\MessageHelper.cs" />
     <Compile Include="Interfaces\IConsoleWriter.cs" />
     <Compile Include="JobLogger.cs" />
     <Compile Include="LoggerConfiguration.cs" />

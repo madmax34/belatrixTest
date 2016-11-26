@@ -599,6 +599,116 @@ namespace Belatrix.Logger.Test
 
         #endregion
 
+        #region Combined Loggers Configuration
+
+        [TestMethod]
+        public void Log_ConfiguredForFileAndDatabaseWithMessagesWarningsAndErrors_ShouldLogToFileAndDatabase()
+        {
+            var jobLogger = JobLogger.GetInstance();
+
+            var loggerConfiguration = new LoggerConfiguration(new List<ILogger> { FileLogger.GetInstance(), new DatabaseLogger()  }, new List<LogLevel> { LogLevel.Message, LogLevel.Warning, LogLevel.Error });
+            jobLogger.Configure(loggerConfiguration);
+
+            var message = new Message("This is the message");
+            jobLogger.Log(message);
+
+            var warning = new Warning("This is the warning");
+            jobLogger.Log(warning);
+
+            var error = new Error("This is the error");
+            jobLogger.Log(error);
+
+            var loggedContent = File.ReadAllLines(_filePath);
+
+            Assert.AreEqual(3, loggedContent.Count());
+            AssertFileContent(loggedContent, new List<ILogMessage> { message, warning, error });
+
+            var count = AssertDatabaseContent(new List<ILogMessage> { message, warning, error });
+
+            Assert.AreEqual(3, count);
+        }
+
+        [TestMethod]
+        public void Log_ConfiguredForFileAndConsoleWithMessagesWarningsAndErrors_ShouldLogToFileAndConsole()
+        {
+            var jobLogger = JobLogger.GetInstance();
+            var mockedConsoleWriter = new MockedConsoleWriter();
+
+            var loggerConfiguration = new LoggerConfiguration(new List<ILogger> { FileLogger.GetInstance(), new ConsoleLogger(mockedConsoleWriter) }, new List<LogLevel> { LogLevel.Message, LogLevel.Warning, LogLevel.Error });
+            jobLogger.Configure(loggerConfiguration);
+
+            var message = new Message("This is the message");
+            jobLogger.Log(message);
+
+            var warning = new Warning("This is the warning");
+            jobLogger.Log(warning);
+
+            var error = new Error("This is the error");
+            jobLogger.Log(error);
+
+            var loggedContent = File.ReadAllLines(_filePath);
+            Assert.AreEqual(3, loggedContent.Count());
+
+            AssertFileContent(loggedContent, new List<ILogMessage> { message, warning, error });
+
+            AssertConsoleContent(mockedConsoleWriter.MockedMessages, new List<ILogMessage> { message, warning, error });
+            Assert.AreEqual(3, mockedConsoleWriter.MockedMessages.Count);
+        }
+
+        [TestMethod]
+        public void Log_ConfiguredForDatabaseAndConsoleWithMessagesWarningsAndErrors_ShouldLogToDatabaseAndConsole()
+        {
+            var jobLogger = JobLogger.GetInstance();
+            var mockedConsoleWriter = new MockedConsoleWriter();
+
+            var loggerConfiguration = new LoggerConfiguration(new List<ILogger> { new DatabaseLogger(), new ConsoleLogger(mockedConsoleWriter) }, new List<LogLevel> { LogLevel.Message, LogLevel.Warning, LogLevel.Error });
+            jobLogger.Configure(loggerConfiguration);
+
+            var message = new Message("This is the message");
+            jobLogger.Log(message);
+
+            var warning = new Warning("This is the warning");
+            jobLogger.Log(warning);
+
+            var error = new Error("This is the error");
+            jobLogger.Log(error);
+
+            var count = AssertDatabaseContent(new List<ILogMessage> { message, warning, error });
+            Assert.AreEqual(3, count);
+
+            AssertConsoleContent(mockedConsoleWriter.MockedMessages, new List<ILogMessage> { message, warning, error });
+            Assert.AreEqual(3, mockedConsoleWriter.MockedMessages.Count);
+        }
+
+        [TestMethod]
+        public void Log_ConfiguredForFileDatabaseAndConsoleWithMessagesWarningsAndErrors_ShouldLogToFileDatabaseAndConsole()
+        {
+            var jobLogger = JobLogger.GetInstance();
+            var mockedConsoleWriter = new MockedConsoleWriter();
+
+            var loggerConfiguration = new LoggerConfiguration(new List<ILogger> { FileLogger.GetInstance(), new DatabaseLogger(), new ConsoleLogger(mockedConsoleWriter) }, new List<LogLevel> { LogLevel.Message, LogLevel.Warning, LogLevel.Error });
+            jobLogger.Configure(loggerConfiguration);
+
+            var message = new Message("This is the message");
+            jobLogger.Log(message);
+
+            var warning = new Warning("This is the warning");
+            jobLogger.Log(warning);
+
+            var error = new Error("This is the error");
+            jobLogger.Log(error);
+
+            var loggedContent = File.ReadAllLines(_filePath);
+            Assert.AreEqual(3, loggedContent.Count());
+
+            var count = AssertDatabaseContent(new List<ILogMessage> { message, warning, error });
+            Assert.AreEqual(3, count);
+
+            AssertConsoleContent(mockedConsoleWriter.MockedMessages, new List<ILogMessage> { message, warning, error });
+            Assert.AreEqual(3, mockedConsoleWriter.MockedMessages.Count);
+        }
+
+        #endregion
         private void AssertFileContent(string[] loggedContent, IList<ILogMessage> messages)
         {
             var index = 0;

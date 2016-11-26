@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.IO;
+using BelatrixTest.Logger.Helpers;
 using BelatrixTest.Logger.Interfaces;
 
 namespace BelatrixTest.Logger
@@ -25,7 +26,7 @@ namespace BelatrixTest.Logger
         {
             lock (Locker)
             {
-                var logMessage = $"{message.Id}|{message.Date.ToString(CultureInfo.InvariantCulture)}|{message.LogLevel}|{message.LogMessage}";
+                var logMessage = MessageHelper.GetFormattedMessage(message);
                 using (var sw = File.AppendText(_path))
                 {
                     sw.WriteLine(logMessage);
